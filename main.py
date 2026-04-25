@@ -2,7 +2,7 @@ import streamlit as st
 import random
 import matplotlib.pyplot as plt
 
-# ---------------------- Gale–Shapley core ----------------------
+# ---------------------- Gale‑Shapley core ----------------------
 def gale_shapley_step(males, females, male_prefs, female_prefs, engagements, next_proposal, free_males):
     if not free_males:
         return engagements, next_proposal, free_males, []
@@ -39,9 +39,9 @@ def gale_shapley_step(males, females, male_prefs, female_prefs, engagements, nex
     return engagements, next_proposal, free_males, events
 
 # ---------------------- Streamlit App ----------------------
-st.title("💍 Gale–Shapley Stable Marriage Game")
+st.title("💍 Gale‑Shapley Stable Marriage Game")
 
-# Fixed number of pairs = 10
+# Fixed simulation data
 n = 10
 males = [f"M{i+1}" for i in range(n)]
 females = [f"F{i+1}" for i in range(n)]
@@ -59,14 +59,16 @@ if "engagements" not in st.session_state:
     st.session_state.round = 0
     st.session_state.finished = False
     st.session_state.bet_pair = None
+    st.session_state.bet_placed = False
 
-# Betting UI
+# Betting controls
 st.sidebar.header("🎲 Place Your Bet")
 male_choice = st.sidebar.selectbox("Choose a Male", males)
 female_choice = st.sidebar.selectbox("Choose a Female", females)
 if st.sidebar.button("Place Bet"):
     st.session_state.bet_pair = (male_choice, female_choice)
-    st.sidebar.success(f"Bet placed: {male_choice} ⟷ {female_choice}")
+    st.session_state.bet_placed = True
+    st.sidebar.success(f"You bet that {male_choice} ⟷ {female_choice} will end up together!")
 
 # Next round button
 if st.button("➡️ Next Round"):
@@ -83,9 +85,7 @@ if st.button("➡️ Next Round"):
         if not st.session_state.free_males:
             st.session_state.finished = True
             st.success("✅ Algorithm finished: all men are matched stably!")
-
-            # Bet result
-            if st.session_state.bet_pair:
+            if st.session_state.bet_placed:
                 male, female = st.session_state.bet_pair
                 matched = st.session_state.engagements.get(female) == male
                 if matched:
