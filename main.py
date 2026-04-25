@@ -1,6 +1,5 @@
 import streamlit as st
 import random
-import matplotlib.pyplot as plt
 
 # ---------------------- Gale‑Shapley core ----------------------
 def gale_shapley_step(males, females, male_prefs, female_prefs, engagements, next_proposal, free_males):
@@ -93,26 +92,21 @@ if st.button("➡️ Next Round"):
                 else:
                     st.error(f"😢 Sorry, {male} and {female} did NOT end up together.")
 
-# Show current engagements visually
+# Show current engagements visually with Graphviz DOT string
 st.subheader("Current Engagements")
 
-fig, ax = plt.subplots(figsize=(8, 6))
-ax.axis("off")
+dot = "digraph G { rankdir=LR;"
 
-# Coordinates for men (left) and women (right)
-male_coords = {m: (0, i) for i, m in enumerate(males)}
-female_coords = {f: (1, i) for i, f in enumerate(females)}
+# Add nodes
+for m in males:
+    dot += f'"{m}" [shape=box, color=blue];'
+for f in females:
+    dot += f'"{f}" [shape=ellipse, color=purple];'
 
-# Draw names
-for m, (x, y) in male_coords.items():
-    ax.text(x, y, m, ha="right", va="center", fontsize=12, color="blue")
-for f, (x, y) in female_coords.items():
-    ax.text(x, y, f, ha="left", va="center", fontsize=12, color="purple")
-
-# Draw connections
+# Add edges for current engagements
 for f, m in st.session_state.engagements.items():
-    x1, y1 = male_coords[m]
-    x2, y2 = female_coords[f]
-    ax.plot([x1, x2], [y1, y2], "r-", linewidth=2)
+    dot += f'"{m}" -> "{f}" [color=red];'
 
-st.pyplot(fig)
+dot += "}"
+
+st.graphviz_chart(dot)
