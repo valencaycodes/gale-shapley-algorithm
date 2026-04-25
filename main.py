@@ -4,11 +4,9 @@ import random
 # ---------------------- Gale‑Shapley core ----------------------
 def gale_shapley_step(males, females, male_prefs, female_prefs, engagements, next_proposal, free_males):
     if not free_males:
-        return engagements, next_proposal, free_males, []
+        return engagements, next_proposal, free_males
 
-    events = []
     new_free = []
-
     for male in free_males:
         pref_list = male_prefs[male]
         if next_proposal[male] >= len(pref_list):
@@ -16,34 +14,27 @@ def gale_shapley_step(males, females, male_prefs, female_prefs, engagements, nex
         female = pref_list[next_proposal[male]]
         next_proposal[male] += 1
 
-        event = f"{male} proposes to {female}"
-
         if female not in engagements:
             engagements[female] = male
-            event += f" → {female} accepts (was free)"
         else:
             current_male = engagements[female]
             rank_new = female_prefs[female].index(male)
             rank_curr = female_prefs[female].index(current_male)
             if rank_new < rank_curr:
                 engagements[female] = male
-                event += f" → {female} switches (prefers {male})"
                 new_free.append(current_male)
             else:
-                event += f" → {female} rejects (prefers {current_male})"
                 new_free.append(male)
-        events.append(event)
 
     free_males[:] = new_free
-    return engagements, next_proposal, free_males, events
+    return engagements, next_proposal, free_males
 
 # ---------------------- Streamlit App ----------------------
-st.title("💍 Gale‑Shapley Stable Marriage Game")
+st.title("Gale‑Shapley Algorithm")
 
-# Fixed simulation data
-n = 10
-males = [f"M{i+1}" for i in range(n)]
-females = [f"F{i+1}" for i in range(n)]
+# Fixed names
+males = ["Arjun", "Ravi", "Karan", "Vikram", "Sahil", "Amit", "Rahul", "Dev", "Manish", "Rohan"]
+females = ["Priya", "Anita", "Kavya", "Meera", "Sneha", "Pooja", "Ritika", "Shreya", "Nisha", "Ayesha"]
 
 # Generate random preferences
 random.seed()
@@ -72,14 +63,12 @@ if st.sidebar.button("Place Bet"):
 # Next round button
 if st.button("➡️ Next Round"):
     if not st.session_state.finished:
-        st.session_state.engagements, st.session_state.next_proposal, st.session_state.free_males, events = gale_shapley_step(
+        st.session_state.engagements, st.session_state.next_proposal, st.session_state.free_males = gale_shapley_step(
             males, females, male_prefs, female_prefs,
             st.session_state.engagements, st.session_state.next_proposal, st.session_state.free_males
         )
         st.session_state.round += 1
-        st.write(f"### Round {st.session_state.round}")
-        for e in events:
-            st.write(e)
+        st.write(f"### Round {st.session_state.round} completed")
 
         if not st.session_state.free_males:
             st.session_state.finished = True
@@ -95,18 +84,19 @@ if st.button("➡️ Next Round"):
 # Show current engagements visually with Graphviz DOT string
 st.subheader("Current Engagements")
 
-dot = "digraph G { rankdir=LR;"
+dot = "digraph G { rankdir=LR; bgcolor=white;"
 
-# Add nodes
+# Add nodes with clean theme
 for m in males:
-    dot += f'"{m}" [shape=box, color=blue];'
+    dot += f'"{m}" [shape=box, style=filled, fillcolor=lightblue, fontcolor=black];'
 for f in females:
-    dot += f'"{f}" [shape=ellipse, color=purple];'
+    dot += f'"{f}" [shape=ellipse, style=filled, fillcolor=lightpink, fontcolor=black];'
 
 # Add edges for current engagements
 for f, m in st.session_state.engagements.items():
-    dot += f'"{m}" -> "{f}" [color=red];'
+    dot += f'"{m}" -> "{f}" [color=red, penwidth=2];'
 
 dot += "}"
 
 st.graphviz_chart(dot)
+
